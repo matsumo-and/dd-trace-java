@@ -3,7 +3,9 @@ package datadog.trace.llmobs.domain;
 import datadog.context.ContextScope;
 import datadog.trace.api.DDSpanTypes;
 import datadog.trace.api.DDTraceId;
+import datadog.trace.api.ProductTraceSource;
 import datadog.trace.api.WellKnownTags;
+import datadog.trace.api.internal.TraceSegment;
 import datadog.trace.api.llmobs.LLMObs;
 import datadog.trace.api.llmobs.LLMObsContext;
 import datadog.trace.api.llmobs.LLMObsSpan;
@@ -101,6 +103,12 @@ public class DDLLMObsSpan implements LLMObsSpan {
     }
     span.setTag(LLMOBS_TAG_PREFIX + PARENT_ID_TAG_INTERNAL, parentSpanID);
     scope = LLMObsContext.attach(span.context());
+
+    // Mark this span as originating from LLM Observability product
+    TraceSegment segment = AgentTracer.get().getTraceSegment();
+    if (segment != null) {
+      segment.setTagTop(Tags.PROPAGATED_TRACE_SOURCE, ProductTraceSource.LLMOBS);
+    }
   }
 
   @Override
